@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Receipt - First Class Senior High School</title>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #004b23, #006400);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      padding: 25px 30px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 215, 0, 0.7);
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+      color: white;
+      animation: fadeIn 1s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo { max-width: 100px; margin: 10px auto; display: block; }
+
+    label { font-weight: bold; margin-bottom: 5px; display: block; }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    option { color: black; }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: gold;
+      border: none;
+      border-radius: 6px;
+      color: #004b23;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: #ffea70; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="./fci logo 1.png" class="logo" />
+    <h2 style="text-align:center;color:#ffd700;margin-bottom:5px;">
+      First Class Senior High School
+    </h2>
+    <p style="text-align:center;">Academic Year: 2025/2026</p>
+
+    <!-- FORM -->
+    <label>Receipt Number</label>
+    <input id="receiptNumber" type="text" readonly />
+
+    <label>Branch</label>
+    <select id="campus">
+      <option value="">-- Select Branch --</option>
+      <option>Afra Odumase</option>
+      <option>Daban</option>
+      <option>Edwenase</option>
+      <option>Takoradi</option>
+      <option>Accra</option>
+      <option>Tamale</option>
+    </select>
+
+    <label>Student Name</label>
+    <input id="studentName" type="text" />
+
+    <label>Program</label>
+    <select id="program">
+      <option value="">-- Select Program --</option>
+      <option>General Arts</option>
+      <option>General Science</option>
+      <option>Agric Science</option>
+      <option>Business</option>
+      <option>Home Economics</option>
+      <option>Visual Arts</option>
+    </select>
+
+    <label>Payment Method</label>
+    <input id="paymentMethod" type="text" />
+
+    <label>Total Amount (GHS)</label>
+    <input id="totalAmount" type="number" />
+
+    <label>Amount Paid (GHS)</label>
+    <input id="amountPaid" type="number" />
+
+    <label>Arrears (GHS)</label>
+    <input id="arrears" type="text" readonly />
+
+    <label>Purpose of Payment</label>
+    <select id="purpose" multiple size="6">
+      <option>Admission Fee</option>
+      <option>Registration Fee</option>
+      <option>Tuition Fee</option>
+      <option>Hostel Fee</option>
+      <option>PTA Dues</option>
+      <option>Books & Stationery</option>
+      <option>Uniform & Sportswear</option>
+      <option>Feeding Fee</option>
+      <option>Extra Classes</option>
+      <option>NOV/DEC Classes Fee</option>
+    </select>
+
+    <label>Received By</label>
+    <input id="receivedBy" type="text" />
+
+    <label>Date</label>
+    <input id="date" type="date" />
+
+    <button onclick="generateReceipt()">Generate Receipt</button>
+  </div>
+
+  <!-- FIREBASE IMPORT -->
+  <script type="module">
+    import { db } from "./firebase.js";
+    import { collection, addDoc }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    emailjs.init("9jzpvsBEPgSrM5VaS");
+
+    // AUTO RECEIPT NUMBER
+    document.getElementById("receiptNumber").value = "REC" + Date.now();
+
+    // AUTO CALCULATE ARREARS
+    document.getElementById("totalAmount").oninput =
+    document.getElementById("amountPaid").oninput = () => {
+      const total = parseFloat(totalAmount.value) || 0;
+      const paid  = parseFloat(amountPaid.value) || 0;
+      arrears.value = (total - paid >= 0 ? (total - paid).toFixed(2) : "0.00");
+    };
+
+    // NUMBER TO WORDS
+    function numberToWords(num) {
+      const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"];
+      const teens = ["Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+      const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+      function convert_hundreds(n) {
+        if (n < 10) return ones[n];
+        if (n < 20) return teens[n - 10];
+        if (n < 100) return tens[Math.floor(n/10)] + (n%10 ? " " + ones[n%10] : "");
+        return ones[Math.floor(n/100)] + " Hundred " + (n%100 ? convert_hundreds(n%100) : "");
+      }
+
+      if (num === 0) return "Zero";
+      let words = "";
+      if (Math.floor(num/1000) > 0) {
+        words += convert_hundreds(Math.floor(num/1000)) + " Thousand ";
+        num %= 1000;
+      }
+      return words + convert_hundreds(num);
+    }
+
+    // SEND EMAIL WITH PDF
+    async function sendEmailWithPDF(pdfBlob, studentName) {
+      const reader = new FileReader();
+      reader.readAsDataURL(pdfBlob);
+
+      reader.onloadend = async () => {
+        const base64 = reader.result.split(",")[1];
+
+        const params = {
+          to_email: "info@firstclassschools.org",
+          student_name: studentName,
+          attachments: [{ name: "receipt.pdf", data: base64 }]
+        };
+
+        try {
+          await emailjs.send("service_u19zfiv", "template_mgm00tm", params);
+          alert("Email sent successfully!");
+        } catch (error) {
+          alert("Failed to send email.");
+        }
+      };
+    }
+
+    // MAIN RECEIPT GENERATOR
+    window.generateReceipt = async function () {
+      const receiptData = {
+        receiptNumber: receiptNumber.value,
+        studentName: studentName.value,
+        program: program.value,
+        campus: campus.value,
+        paymentMethod: paymentMethod.value,
+        totalAmount: totalAmount.value,
+        amountPaid: amountPaid.value,
+        arrears: arrears.value,
+        purposes: Array.from(purpose.selectedOptions).map(o => o.value),
+        receivedBy: receivedBy.value,
+        date: date.value,
+        amountWords: numberToWords(Math.floor(amountPaid.value)) + " Ghana Cedis",
+        timestamp: Date.now()
+      };
+
+      // SAVE TO FIRESTORE
+      await addDoc(collection(db, "receipts"), receiptData);
+
+      // OPEN PRINT PAGE
+      const win = window.open("", "_blank", "width=800,height=1000");
+      win.document.write(`
+        <h2>Receipt</h2>
+        <p><strong>Receipt No:</strong> ${receiptData.receiptNumber}</p>
+        <p><strong>Name:</strong> ${receiptData.studentName}</p>
+        <p><strong>Program:</strong> ${receiptData.program}</p>
+        <p><strong>Branch:</strong> ${receiptData.campus}</p>
+        <p><strong>Payment Method:</strong> ${receiptData.paymentMethod}</p>
+        <p><strong>Amount Paid:</strong> ${receiptData.amountPaid}</p>
+        <p><strong>Arrears:</strong> ${receiptData.arrears}</p>
+        <p><strong>Date:</strong> ${receiptData.date}</p>
+        <button onclick="window.print()">Print</button>
+      `);
+      win.document.close();
+    };
+  </script>
+</body>
+</html>

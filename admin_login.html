@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #003300;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #006400;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Admin Login</h2>
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+  <p id="msg" style="color:red;"></p>
+</div>
+
+<!-- Firebase Core -->
+<script type="module" src="firebase.js"></script>
+
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import { signInWithEmailAndPassword } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, getDoc } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const msg = document.getElementById("msg");
+
+  window.login = async function () {
+    msg.innerHTML = "";
+
+    const email = document.getElementById("email").value;
+    const pw = document.getElementById("password").value;
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, pw);
+
+      const ref = doc(db, "admins", userCredential.user.uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        msg.innerHTML = "❌ You are not an admin.";
+        return;
+      }
+
+      localStorage.setItem("adminLoggedIn", "true");
+      window.location.href = "admin_dashboard.html";
+    } catch (err) {
+      msg.innerHTML = "❌ " + err.message;
+    }
+  };
+</script>
+
+
+</body>
+</html>

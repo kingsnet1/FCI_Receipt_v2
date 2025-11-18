@@ -1,23 +1,39 @@
-// firebase.js
-
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-// Your web app's Firebase configuration
+// firebase.js - scaffolding. Replace the placeholders with your Firebase project's config.
 const firebaseConfig = {
-  apiKey: "AIzaSyBkofsFfG3XxbXUyFWVodvZ1i074YpTxkY",
-  authDomain: "fci-receipt-system.firebaseapp.com",
-  projectId: "fci-receipt-system",
-  storageBucket: "fci-receipt-system.firebasestorage.app",
-  messagingSenderId: "878350453454",
-  appId: "1:878350453454:web:23b4815a32076880ab9e9f"
+  apiKey: "REPLACE_WITH_YOUR_API_KEY",
+  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
+  appId: "REPLACE_WITH_YOUR_APP_ID"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+(function() {
+  // Load compat libraries if firebase isn't present yet
+  function loadScript(src, onload) {
+    const s = document.createElement('script');
+    s.src = src; s.defer = true;
+    if (onload) s.onload = onload;
+    document.head.appendChild(s);
+  }
 
-// Export Firestore and Auth for use in other scripts
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+  if (typeof window.firebase === 'undefined') {
+    // Use a known stable compat version for simple projects
+    loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+    loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js');
+    loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js', function() {
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        console.log('Firebase loaded and initialized.');
+      } catch (e) {
+        console.error('Firebase init error:', e);
+      }
+    });
+  } else {
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    } catch (e) { console.error(e); }
+  }
+})();

@@ -1,98 +1,72 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #f4f4f4;
-      padding: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 30px;
-    }
-    table, th, td {
-      border: 1px solid #333;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-    }
-
-    button {
-      background: #006400;
-      color: #fff;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #logout {
-      background: red;
-      float: right;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Dashboard - FCI Receipt</title>
+<style>
+  body{font-family:Inter,Arial,sans-serif;background:#f6f8fb;margin:0;padding:18px}
+  header{max-width:1200px;margin:0 auto 16px auto;display:flex;justify-content:space-between;align-items:center}
+  .container{max-width:1200px;margin:auto;background:#fff;padding:16px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,0.06)}
+  .btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+  .btn-logout{background:#dc3545;color:#fff}
+  #receiptsList div{padding:8px;border-bottom:1px solid #efefef}
+</style>
+<script src="firebase.js" defer></script>
 </head>
-
 <body>
+  <header>
+    <h1>Admin Dashboard</h1>
+    <div>
+      <span id="adminName">Admin</span>
+      <button id="logoutBtn" class="btn btn-logout" style="margin-left:12px">Logout</button>
+    </div>
+  </header>
 
-<h2>Admin Dashboard</h2>
-<button id="logout" onclick="logout()">Logout</button>
+  <main class="container">
+    <section>
+      <h2>Receipts</h2>
+      <div id="receiptsList">Loading receipts...</div>
+    </section>
+  </main>
 
-<h3>All Generated Receipts</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>Receipt #</th>
-      <th>Name</th>
-      <th>Branch</th>
-      <th>Amount Paid</th>
-      <th>Date</th>
-    </tr>
-  </thead>
-  <tbody id="receiptTable"></tbody>
-</table>
-
-<script type="module" src="firebase.js"></script>
-
-<script type="module">
-  import { db } from "./firebase.js";
-  import { collection, onSnapshot } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  if (!localStorage.getItem("adminLoggedIn")) {
-    window.location.href = "admin_login.html";
-  }
-
-  const table = document.getElementById("receiptTable");
-
-  onSnapshot(collection(db, "receipts"), (snapshot) => {
-    table.innerHTML = "";
-    snapshot.forEach((doc) => {
-      const r = doc.data();
-      table.innerHTML += `
-        <tr>
-          <td>${r.receiptNumber}</td>
-          <td>${r.studentName}</td>
-          <td>${r.campus}</td>
-          <td>${r.amountPaid}</td>
-          <td>${r.date}</td>
-        </tr>`;
+  <script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    // Protect the page
+    if (localStorage.getItem('adminLoggedIn') !== 'true') {
+      location.replace('admin_login.html');
+      return;
+    }
+    const admin = localStorage.getItem('adminUser') || 'Admin';
+    document.getElementById('adminName').textContent = admin;
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      localStorage.removeItem('adminLoggedIn');
+      localStorage.removeItem('adminUser');
+      location.href = 'admin_login.html';
     });
+
+    // Firestore fetch example (uncomment when firebase configured)
+    if (typeof firebase !== 'undefined' && firebase.firestore) {
+      const db = firebase.firestore();
+      db.collection('receipts').orderBy('createdAt','desc').limit(50).get()
+        .then(snapshot => {
+          const el = document.getElementById('receiptsList');
+          el.innerHTML = '';
+          if (snapshot.empty) el.textContent = 'No receipts found.';
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const row = document.createElement('div');
+            const created = d.createdAt && d.createdAt.seconds ? new Date(d.createdAt.seconds*1000).toLocaleString() : '';
+            row.textContent = (d.customer || 'Unknown') + ' — ' + (d.amount || '') + ' — ' + created;
+            el.appendChild(row);
+          });
+        })
+        .catch(err => { console.error(err); document.getElementById('receiptsList').textContent = 'Failed to load receipts'; });
+    } else {
+      // if firebase not configured, show helpful message
+      document.getElementById('receiptsList').textContent = 'Firebase not configured. Edit firebase.js with your config to enable live data.';
+    }
   });
-
-  window.logout = function () {
-    localStorage.removeItem("adminLoggedIn");
-    window.location.href = "admin_login.html";
-  };
-</script>
-
-
+  </script>
 </body>
 </html>

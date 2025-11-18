@@ -1,14 +1,21 @@
 // firebase.js - scaffolding. Replace the placeholders with your Firebase project's config.
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_APP_ID"
+  apiKey: "AIzaSyBkofsFfG3XxbXUyFWVodvZ1i074YpTxkY",
+  authDomain: "fci-receipt-system.firebaseapp.com",
+  projectId: "fci-receipt-system",
+  storageBucket: "fci-receipt-system.firebasestorage.app",
+  messagingSenderId: "878350453454",
+  appId: "1:878350453454:web:23b4815a32076880ab9e9f"
 };
 
-(function() {
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
   // Load compat libraries if firebase isn't present yet
   function loadScript(src, onload) {
     const s = document.createElement('script');

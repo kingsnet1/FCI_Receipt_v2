@@ -217,7 +217,7 @@ async function deleteReceipt(receiptId){if(confirm('Are you sure you want to del
 function openReceiptWindow(receipt){const receiptContent=`<div id="receiptContent" style="font-family:Arial;padding:20px;text-align:center;"><img src="./fci logo 1.png" style="max-width:100px;margin:0 auto;" alt="logo"/><h2 style="color:#006400;">First Class Senior High School</h2><p><strong>Academic Year:</strong> 2025/2026</p><p><strong>Contact:</strong> 0244406506 / 0245319301 / 0243686024 / 0242842244</p><p><strong>Website:</strong> www.firstclassschools.org</p><p><strong>Email:</strong> info@firstclassschools.org</p><hr style="border:none;height:2px;background:#006400;margin:15px 0;"/><hr style="border:none;height:2px;background:#ffd700;margin:15px 0;"/><p><strong>Branch:</strong> ${receipt.campus||'N/A'}</p><p><strong>Receipt No:</strong> ${receipt.receiptNumber||'N/A'}</p><p><strong>Name:</strong> ${receipt.studentName||'N/A'}</p><p><strong>Program:</strong> ${receipt.program||'N/A'}</p><p><strong>Payment Method:</strong> ${receipt.paymentMethod||'N/A'}</p><table border="1" style="width:100%;border-collapse:collapse;margin-top:15px;"><thead><tr><th>Description</th><th>Amount (GHS)</th></tr></thead><tbody><tr><td>Total Amount</td><td>${receipt.totalAmount||'0.00'}</td></tr><tr><td>Amount Paid</td><td>${receipt.amountPaid||'0.00'}</td></tr><tr><td><strong>Arrears</strong></td><td><strong>${receipt.arrears||'0.00'}</strong></td></tr></tbody></table><p><strong>Amount in Words:</strong> ${receipt.amountWords||'N/A'}</p><p><strong>Purpose of Payment:</strong> ${receipt.purposeList||'N/A'}</p><p><strong>Received By:</strong> ${receipt.receivedBy||'N/A'}</p><p><strong>Date:</strong> ${receipt.date||'N/A'}</p><hr style="border:none;height:2px;background:#ffd700;margin:15px 0;"/><p><strong>NOTE:</strong> Amount Paid are not refundable in any case whatsoever.</p><p style="color:#004b23;">Thank you for your payment. Keep this receipt for your records.</p><button onclick="window.print()" style="padding:8px 12px;margin:5px;background:#006400;color:#fff;border:none;border-radius:6px;cursor:pointer;">🖨️ Print</button></div>`;const receiptWindow=window.open("","_blank","width=700,height=800");receiptWindow.document.open();receiptWindow.document.write(`<!doctype html><html><head><meta charset='utf-8'><title>Receipt</title></head><body>${receiptContent}</body></html>`);receiptWindow.document.close();}
 async function sendEmailWithPDF(pdfBlob,studentName){const reader=new FileReader();reader.readAsDataURL(pdfBlob);reader.onloadend=async function(){const dataUri=reader.result;const base64Only=dataUri.split(',')[1];const params={to_email:"info@firstclassschools.org",student_name:studentName,attachments:[{name:"receipt.pdf",data:base64Only}],message_base64:dataUri};try{await emailjs.send("service_u19zfiv","template_mgm00tm",params);alert("✅ Email sent successfully!");}catch(error){console.error("EmailJS Error:",error);alert("❌ Failed to send email. Check console for details.");}};}
 
-// Fixed PDF Preview Function
+// Fixed PDF Preview Function - Single Page Fit
 function previewPDF() {
     const studentName = document.getElementById("studentName").value || "N/A";
     const program = document.getElementById("class").value || "N/A";
@@ -233,41 +233,63 @@ function previewPDF() {
     const purposeList = selectedPurposes.length > 0 ? selectedPurposes.join(", ") : "N/A";
     const amountWords = document.getElementById("amountInWords").innerText;
 
-    // Create a temporary div for the receipt content
+    // Create a temporary div for the receipt content with optimized styling for PDF
     const tempDiv = document.createElement('div');
-    tempDiv.style.padding = '20px';
-    tempDiv.style.fontFamily = 'Arial';
+    tempDiv.style.width = '190mm'; // A4 width minus margins
+    tempDiv.style.padding = '15mm';
+    tempDiv.style.fontFamily = 'Arial, sans-serif';
+    tempDiv.style.fontSize = '12px';
+    tempDiv.style.lineHeight = '1.4';
     tempDiv.style.textAlign = 'center';
+    tempDiv.style.margin = '0 auto';
+    tempDiv.style.backgroundColor = 'white';
+    tempDiv.style.color = 'black';
+    
     tempDiv.innerHTML = `
-        <img src="./fci logo 1.png" style="max-width:100px;margin:0 auto;" alt="logo"/>
-        <h2 style="color:#006400;">First Class Senior High School</h2>
-        <p><strong>Academic Year:</strong> 2025/2026</p>
-        <p><strong>Contact:</strong> 0244406506 / 0245319301 / 0243686024 / 0242842244</p>
-        <p><strong>Website:</strong> www.firstclassschools.org</p>
-        <p><strong>Email:</strong> info@firstclassschools.org</p>
-        <hr style="border:none;height:2px;background:#006400;margin:15px 0;"/>
-        <hr style="border:none;height:2px;background:#ffd700;margin:15px 0;"/>
-        <p><strong>Branch:</strong> ${campus}</p>
-        <p><strong>Receipt No:</strong> ${receiptNumber}</p>
-        <p><strong>Name:</strong> ${studentName}</p>
-        <p><strong>Program:</strong> ${program}</p>
-        <p><strong>Payment Method:</strong> ${paymentMethod}</p>
-        <table border="1" style="width:100%;border-collapse:collapse;margin-top:15px;">
-            <thead><tr><th>Description</th><th>Amount (GHS)</th></tr></thead>
+        <div style="margin-bottom: 15px;">
+            <img src="./fci logo 1.png" style="max-width:80px;margin:0 auto;" alt="logo"/>
+            <h2 style="color:#006400; margin: 10px 0; font-size: 20px;">First Class Senior High School</h2>
+            <p style="margin: 5px 0;"><strong>Academic Year:</strong> 2025/2026</p>
+            <p style="margin: 5px 0;"><strong>Contact:</strong> 0244406506 / 0245319301 / 0243686024 / 0242842244</p>
+            <p style="margin: 5px 0;"><strong>Website:</strong> www.firstclassschools.org</p>
+            <p style="margin: 5px 0;"><strong>Email:</strong> info@firstclassschools.org</p>
+        </div>
+        <hr style="border:none;height:2px;background:#006400;margin:10px 0;"/>
+        <hr style="border:none;height:2px;background:#ffd700;margin:10px 0;"/>
+        
+        <div style="text-align: left; margin: 15px 0;">
+            <p style="margin: 8px 0;"><strong>Branch:</strong> ${campus}</p>
+            <p style="margin: 8px 0;"><strong>Receipt No:</strong> ${receiptNumber}</p>
+            <p style="margin: 8px 0;"><strong>Name:</strong> ${studentName}</p>
+            <p style="margin: 8px 0;"><strong>Program:</strong> ${program}</p>
+            <p style="margin: 8px 0;"><strong>Payment Method:</strong> ${paymentMethod}</p>
+        </div>
+        
+        <table border="1" style="width:100%;border-collapse:collapse;margin:15px 0; font-size: 11px;">
+            <thead>
+                <tr>
+                    <th style="padding: 8px; background: #f0f0f0;">Description</th>
+                    <th style="padding: 8px; background: #f0f0f0;">Amount (GHS)</th>
+                </tr>
+            </thead>
             <tbody>
-                <tr><td>Total Amount</td><td>${totalAmount}</td></tr>
-                <tr><td>Amount Paid</td><td>${amountPaid}</td></tr>
-                <tr><td><strong>Arrears</strong></td><td><strong>${arrears}</strong></td></tr>
+                <tr><td style="padding: 8px;">Total Amount</td><td style="padding: 8px;">${totalAmount}</td></tr>
+                <tr><td style="padding: 8px;">Amount Paid</td><td style="padding: 8px;">${amountPaid}</td></tr>
+                <tr><td style="padding: 8px; font-weight: bold;">Arrears</td><td style="padding: 8px; font-weight: bold;">${arrears}</td></tr>
             </tbody>
         </table>
-        <p><strong>Amount in Words:</strong> ${amountWords}</p>
-        <p><strong>Purpose of Payment:</strong> ${purposeList}</p>
-        <p><strong>Received By:</strong> ${receivedBy}</p>
-        <p><strong>Date:</strong> ${date}</p>
+        
+        <div style="text-align: left; margin: 15px 0;">
+            <p style="margin: 8px 0;"><strong>Amount in Words:</strong> ${amountWords}</p>
+            <p style="margin: 8px 0;"><strong>Purpose of Payment:</strong> ${purposeList}</p>
+            <p style="margin: 8px 0;"><strong>Received By:</strong> ${receivedBy}</p>
+            <p style="margin: 8px 0;"><strong>Date:</strong> ${date}</p>
+        </div>
+        
         <hr style="border:none;height:2px;background:#ffd700;margin:15px 0;"/>
-        <p><strong>NOTE:</strong> Amount Paid are not refundable in any case whatsoever.</p>
-        <p style="color:#004b23;">Thank you for your payment. Keep this receipt for your records.</p>
-        <p style="color:#ff0000; font-weight: bold;">PREVIEW - NOT SAVED TO DATABASE</p>
+        <p style="margin: 10px 0; font-size: 11px;"><strong>NOTE:</strong> Amount Paid are not refundable in any case whatsoever.</p>
+        <p style="color:#004b23; margin: 10px 0;">Thank you for your payment. Keep this receipt for your records.</p>
+        <p style="color:#ff0000; font-weight: bold; font-size: 14px; margin-top: 15px; border: 2px solid #ff0000; padding: 10px;">PREVIEW - NOT SAVED TO DATABASE</p>
     `;
 
     // Append to body temporarily
@@ -277,7 +299,9 @@ function previewPDF() {
     html2canvas(tempDiv, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
+        width: tempDiv.offsetWidth,
+        height: tempDiv.scrollHeight
     }).then(canvas => {
         // Remove temporary div
         document.body.removeChild(tempDiv);
@@ -285,24 +309,26 @@ function previewPDF() {
         // Convert canvas to image
         const imgData = canvas.toDataURL('image/png');
         
-        // Create PDF
+        // Create PDF - A4 size (210mm x 297mm)
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 190;
-        const pageHeight = 295;
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft = imgHeight;
-        let position = 10;
-
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        // Add new pages if needed
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Calculate dimensions to fit on one page
+        const imgWidth = pdfWidth - 20; // 10mm margins on each side
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Check if content fits on one page
+        if (imgHeight <= pdfHeight - 20) {
+            // Content fits on one page
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        } else {
+            // Scale down to fit on one page
+            const scaleFactor = (pdfHeight - 20) / imgHeight;
+            const scaledWidth = imgWidth * scaleFactor;
+            const scaledHeight = imgHeight * scaleFactor;
+            pdf.addImage(imgData, 'PNG', 10, 10, scaledWidth, scaledHeight);
         }
 
         // Open PDF in new window
@@ -312,6 +338,8 @@ function previewPDF() {
         
         if (!previewWindow) {
             alert('Popup blocked! Please allow popups for this site to view PDF preview.');
+            // Download as fallback
+            pdf.save('receipt-preview.pdf');
         }
     }).catch(error => {
         console.error('Error generating PDF preview:', error);

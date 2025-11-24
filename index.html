@@ -334,7 +334,7 @@
       <div class="form-group"><label for="date">Date:</label><input type="date" id="date" /></div>
 
       <div class="buttons">
-        <button onclick="generateReceipt()">Generate Receipt</button>
+        <button id="generateReceiptBtn">Generate Receipt</button>
         <button id="goToAdminBtn" class="nav-btn">Admin Dashboard</button>
       </div>
     </div>
@@ -394,13 +394,12 @@
   <script>
     // Firebase Configuration
     const firebaseConfig = {
-      // Replace with your Firebase configuration
       apiKey: "AIzaSyBkofsFfG3XxbXUyFWVodvZ1i074YpTxkY",
-  authDomain: "fci-receipt-system.firebaseapp.com",
-  projectId: "fci-receipt-system",
-  storageBucket: "fci-receipt-system.firebasestorage.app",
-  messagingSenderId: "878350453454",
-  appId: "1:878350453454:web:23b4815a32076880ab9e9f"
+      authDomain: "fci-receipt-system.firebaseapp.com",
+      projectId: "fci-receipt-system",
+      storageBucket: "fci-receipt-system.firebasestorage.app",
+      messagingSenderId: "878350453454",
+      appId: "1:878350453454:web:23b4815a32076880ab9e9f"
     };
 
     // Initialize Firebase
@@ -430,6 +429,10 @@
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
     const pageInfo = document.getElementById('pageInfo');
+    const generateReceiptBtn = document.getElementById('generateReceiptBtn');
+
+    // Set default date to today
+    document.getElementById('date').valueAsDate = new Date();
 
     // Pagination variables
     let currentPage = 1;
@@ -449,6 +452,7 @@
       loginContainer.classList.add('hidden');
       receiptContainer.classList.remove('hidden');
       adminContainer.classList.add('hidden');
+      generateReceiptNumber();
     }
 
     function showAdminDashboard() {
@@ -489,7 +493,7 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         // User is signed in
-        showAdminDashboard();
+        // Don't automatically redirect to admin - let user choose
       } else {
         // User is signed out
         showLogin();
@@ -500,7 +504,6 @@
     function generateReceiptNumber() {
       document.getElementById("receiptNumber").value = "REC" + Date.now();
     }
-    generateReceiptNumber();
 
     function calculateArrears() {
       const total = parseFloat(document.getElementById("totalAmount").value) || 0;
@@ -678,7 +681,7 @@
           <img src="./fci logo 1.png" style="max-width:100px;margin:0 auto;" alt="logo" />
           <h2 style="color:#006400;">First Class Senior High School</h2>
           <p><strong>Academic Year:</strong> 2025/2026</p>
-          <p><strong>Contact:</strong> Contact: 0244406506 / 0245319301 / 0243686024 / 0242842244</p>
+          <p><strong>Contact:</strong> 0244406506 / 0245319301 / 0243686024 / 0242842244</p>
           <p><strong>Website:</strong> www.firstclassschools.org</p>
           <p><strong>Email:</strong> info@firstclassschools.org</p>
           <hr style="border:none;height:2px;background:#006400;margin:15px 0;" />
@@ -752,6 +755,22 @@
       const purposeList = selectedPurposes.length > 0 ? selectedPurposes.join(", ") : "N/A";
       const amountWords = document.getElementById("amountInWords").innerText;
 
+      // Validate required fields
+      if (!studentName || studentName === "N/A") {
+        alert("Please enter student name");
+        return;
+      }
+      
+      if (!campus) {
+        alert("Please select a branch");
+        return;
+      }
+      
+      if (!amountPaid || parseFloat(amountPaid) <= 0) {
+        alert("Please enter a valid amount paid");
+        return;
+      }
+
       // Prepare receipt data for Firebase
       const receiptData = {
         studentName,
@@ -781,7 +800,7 @@
           <img src="./fci logo 1.png" style="max-width:100px;margin:0 auto;" alt="logo" />
           <h2 style="color:#006400;">First Class Senior High School</h2>
           <p><strong>Academic Year:</strong> 2025/2026</p>
-          <p><strong>Contact:</strong> Contact: 0244406506 / 0245319301 / 0243686024 / 0242842244</p>
+          <p><strong>Contact:</strong> 0244406506 / 0245319301 / 0243686024 / 0242842244</p>
           <p><strong>Website:</strong> www.firstclassschools.org</p>
           <p><strong>Email:</strong> info@firstclassschools.org</p>
           <hr style="border:none;height:2px;background:#006400;margin:15px 0;" />
@@ -844,7 +863,7 @@
       document.getElementById("amountInWords").innerText = "";
       document.getElementById("purposeOfPayment").selectedIndex = -1;
       document.getElementById("receivedBy").value = "";
-      document.getElementById("date").value = "";
+      document.getElementById("date").valueAsDate = new Date();
       document.getElementById("arrears").value = "";
     }
 
@@ -885,8 +904,12 @@
       }
     });
 
+    // Event listener for generate receipt button
+    generateReceiptBtn.addEventListener('click', generateReceipt);
+
     // Initialize the app
     showLogin();
+    generateReceiptNumber();
   </script>
 </body>
 </html>
